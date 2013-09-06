@@ -176,7 +176,6 @@ class Image(File):
                 # catch exception and manage it. We can re-raise it for debugging
                 # purposes and/or just logging it, provided user configured
                 # proper logging configuration
-                raise
                 if filer_settings.FILER_ENABLE_LOGGING:
                     logger.error('Error while generating thumbnail: %s',e)
                 if filer_settings.FILER_DEBUG:
