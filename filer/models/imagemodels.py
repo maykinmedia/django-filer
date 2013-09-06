@@ -88,7 +88,7 @@ class Image(File):
                         self.date_taken = datetime(
                             int(year), int(month), int(day),
                             int(hour), int(minute), int(second))
-            except Exception, e:
+            except Exception as e:
                 pass
         if self.date_taken is None:
             self.date_taken = now()
@@ -97,7 +97,7 @@ class Image(File):
             # do this more efficient somehow?
             self.file.seek(0)
             self._width, self._height = PILImage.open(self.file).size
-        except Exception:
+        except Exception as e:
             # probably the image is missing. nevermind.
             pass
         super(Image, self).save(*args, **kwargs)
@@ -167,15 +167,16 @@ class Image(File):
 
     def _generate_thumbnails(self, required_thumbnails):
         _thumbnails = {}
-        for name, opts in required_thumbnails.iteritems():
+        for name, opts in required_thumbnails.items():
             try:
                 opts.update({'subject_location': self.subject_location})
                 thumb = self.file.get_thumbnail(opts)
                 _thumbnails[name] = thumb.url
-            except Exception,e:
+            except Exception as e:
                 # catch exception and manage it. We can re-raise it for debugging
                 # purposes and/or just logging it, provided user configured
                 # proper logging configuration
+                raise
                 if filer_settings.FILER_ENABLE_LOGGING:
                     logger.error('Error while generating thumbnail: %s',e)
                 if filer_settings.FILER_DEBUG:

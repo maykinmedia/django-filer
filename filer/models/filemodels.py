@@ -149,7 +149,7 @@ class File(PolymorphicModel, mixins.IconsMixin):
         # TODO: only do this if needed (depending on the storage backend the whole file will be downloaded)
         try:
             self.generate_sha1()
-        except Exception, e:
+        except Exception as e:
             pass
         super(File, self).save(*args, **kwargs)
     save.alters_data = True
@@ -168,10 +168,12 @@ class File(PolymorphicModel, mixins.IconsMixin):
             text = self.original_filename or 'unnamed file'
         else:
             text = self.name
-        text = u"%s" % (text,)
+        text = "%s" % (text,)
         return text
 
     def __lt__(self, other):
+        def cmp(a, b):
+            return (a > b) - (a < b)
         return cmp(self.label.lower(), other.label.lower()) < 0
 
     def has_edit_permission(self, request):
@@ -202,9 +204,9 @@ class File(PolymorphicModel, mixins.IconsMixin):
 
     def __unicode__(self):
         if self.name in ('', None):
-            text = u"%s" % (self.original_filename,)
+            text = "%s" % (self.original_filename,)
         else:
-            text = u"%s" % (self.name,)
+            text = "%s" % (self.name,)
         return text
 
     def get_admin_url_path(self):

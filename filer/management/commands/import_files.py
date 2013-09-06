@@ -43,9 +43,9 @@ class FileImporter(object):
             if created:
                 self.file_created += 1
         if self.verbosity >= 2:
-            print u"file_created #%s / image_created #%s -- file : %s -- created : %s" % (self.file_created,
+            print("file_created #%s / image_created #%s -- file : %s -- created : %s" % (self.file_created,
                                                         self.image_created,
-                                                        obj, created)
+                                                        obj, created))
         return obj
 
     def get_or_create_folder(self, folder_names):
@@ -66,8 +66,8 @@ class FileImporter(object):
             if created:
                 self.folder_created += 1
                 if self.verbosity >= 2:
-                    print u"folder_created #%s folder : %s -- created : %s" % (self.folder_created,
-                                                                               current_parent, created)
+                    print("folder_created #%s folder : %s -- created : %s" % (self.folder_created,
+                                                                               current_parent, created))
         return current_parent
 
     def walker(self, path=None, base_folder=None):
@@ -83,9 +83,9 @@ class FileImporter(object):
         path = unicode(os.path.normpath(path))
         if base_folder:
             base_folder = unicode(os.path.normpath(base_folder))
-            print u"The directory structure will be imported in %s" % (base_folder,)
+            print("The directory structure will be imported in %s" % (base_folder,))
         if self.verbosity >= 1:
-            print u"Import the folders and files in %s" % (path,)
+            print("Import the folders and files in %s" % (path,))
         root_folder_name = os.path.basename(path)
         for root, dirs, files in os.walk(path):
             rel_folders = root.partition(path)[2].strip(os.path.sep).split(os.path.sep)
@@ -97,14 +97,14 @@ class FileImporter(object):
                 folder_names = [root_folder_name] + rel_folders
             folder = self.get_or_create_folder(folder_names)
             for file_obj in files:
-                dj_file = DjangoFile(open(os.path.join(root, file_obj)),
+                dj_file = DjangoFile(open(os.path.join(root, file_obj), 'rb'),
                                      name=file_obj)
                 self.import_file(file_obj=dj_file, folder=folder)
         if self.verbosity >= 1:
-            print ('folder_created #%s / file_created #%s / ' + \
-                   'image_created #%s') % (
-                                self.folder_created, self.file_created,
-                                self.image_created)
+            print(('folder_created #%s / file_created #%s / ' + \
+                       'image_created #%s') % (
+                    self.folder_created, self.file_created,
+                    self.image_created))
 
 
 class Command(NoArgsCommand):

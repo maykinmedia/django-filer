@@ -23,7 +23,7 @@ def get_exif(im):
 
 
 def get_exif_for_file(file_obj):
-    im = Image.open(file_obj, 'r')
+    im = Image.open(file_obj, 'rb')
     return get_exif(im)
 
 

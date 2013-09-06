@@ -22,7 +22,7 @@ class Clipboard(models.Model):
             return True
 
     def __unicode__(self):
-        return u"Clipboard %s of %s" % (self.id, self.user)
+        return "Clipboard %s of %s" % (self.id, self.user)
 
     class Meta:
         app_label = 'filer'

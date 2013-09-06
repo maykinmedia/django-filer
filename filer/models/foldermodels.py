@@ -143,7 +143,7 @@ class Folder(models.Model, mixins.IconsMixin):
 
     @property
     def pretty_logical_path(self):
-        return u"/%s" % u"/".join([f.name for f in self.logical_path+[self]])
+        return "/%s" % "/".join([f.name for f in self.logical_path+[self]])
 
     @property
     def quoted_logical_path(self):
@@ -201,7 +201,7 @@ class Folder(models.Model, mixins.IconsMixin):
                                     args=(self.id,))
 
     def __unicode__(self):
-        return u"%s" % (self.name,)
+        return "%s" % (self.name,)
 
     def contains_folder(self, folder_name):
         try:
@@ -264,18 +264,18 @@ class FolderPermission(models.Model):
 
     def __unicode__(self):
         if self.folder:
-            name = u'%s' % self.folder
+            name = '%s' % self.folder
         else:
-            name = u'All Folders'
+            name = 'All Folders'
 
         ug = []
         if self.everybody:
             ug.append('Everybody')
         else:
             if self.group:
-                ug.append(u"Group: %s" % self.group)
+                ug.append("Group: %s" % self.group)
             if self.user:
-                ug.append(u"User: %s" % self.user)
+                ug.append("User: %s" % self.user)
         usergroup = " ".join(ug)
         perms = []
         for s in ['can_edit', 'can_read', 'can_add_children']:
@@ -285,7 +285,7 @@ class FolderPermission(models.Model):
             elif perm == self.DENY:
                 perms.append('!%s' % s)
         perms = ', '.join(perms)
-        return u"Folder: '%s'->%s [%s] [%s]" % (
+        return "Folder: '%s'->%s [%s] [%s]" % (
                         name, unicode(self.TYPES[self.type][1]),
                         perms, usergroup)
 
