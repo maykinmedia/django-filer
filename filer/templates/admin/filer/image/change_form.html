@@ -14,6 +14,10 @@
 <a class="insertlink insertlinkButton" href="" onclick="opener.dismissRelatedFolderLookupPopup(window, {{ object_id }}, '{{ original.thumbnails.admin_sidebar_preview }}', '{{ original.original_filename }}'); return false;" >Select image from popup</a>
 {% endif %}
 
+{% if original.folder %}
+<a href="{{ original.folder.get_admin_directory_listing_url_path }}{% if is_popup %}?t=file_ptr&pop=1{% endif %}">Folder: {{ original.folder }}</a>
+{% endif %}
+
 {% endblock %}
 
 {% block file_sidebar %}

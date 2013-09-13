@@ -87,6 +87,7 @@ class ClipboardAdmin(admin.ModelAdmin):
                 json_response = {
                     'thumbnail': file_obj.icons['32'],
                     'alt_text': '',
+                    'id': file_obj.id,
                     'label': str(file_obj),
                 }
                 return HttpResponse(simplejson.dumps(json_response),

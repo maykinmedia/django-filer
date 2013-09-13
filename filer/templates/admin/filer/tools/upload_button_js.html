@@ -25,9 +25,11 @@ $(function() {
                 <td class="label">' + file.error + '</td>\
                 <td class="buttons"></td>';
             } else {
+				console.log(file);
+				var admin_link = "/admin/filer/image/" + file.id + "?_popup=1"
                 var html = '\
                     <td class="thumbnail"><img style="width: 32px;height: 32px;" src="' + file.thumbnail + '" alt="' + file.alt_text + '" /></td>\
-                    <td class="label">' + file.label + '</td>\
+                    <td class="label"><a href="' + admin_link + '">' + file.label + '</td>\
                     <td class="buttons"></td>';
             }
             $('#fileUpload-' + id).html(html);

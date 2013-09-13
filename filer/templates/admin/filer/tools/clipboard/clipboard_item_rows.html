@@ -2,7 +2,7 @@
 {% for generic_item in items %}{% with generic_item as item %}
         <tr class="clipboardItem">
             <td class="thumbnail"><img src="{{ item.icons.32 }}" alt="{{ item.default_alt_text }}" /></td>
-            <td class="label">{{ item.label }}</td>
+            <td class="label"><a href='/admin/filer/image/{{ item.id }}/{% if is_popup %}?_popup=1{% endif %}'>{{ item.label }}</a></td>
             <td class="buttons"></td>
         </tr>
 {% endwith %}{% endfor %}{% else %}
