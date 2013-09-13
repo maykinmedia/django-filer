@@ -10,6 +10,10 @@
   {% if has_absolute_url %}<li><a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif%}
   </ul>
 {% endif %}{% endif %}
+{% if is_popup %}
+<a class="insertlink insertlinkButton" href="" onclick="opener.dismissRelatedFolderLookupPopup(window, {{ object_id }}, '{{ original.thumbnails.admin_sidebar_preview }}', '{{ original.original_filename }}'); return false;" >Select image from popup</a>
+{% endif %}
+
 {% endblock %}
 
 {% block file_sidebar %}
@@ -19,6 +23,7 @@
         <div id="paper">&nbsp;</div>
     </div>
     <a href="{{ original.url }}">{% trans "Full size preview" %}</a>
+
 </div>
 {{ block.super }}
 {% endblock %}
