@@ -173,7 +173,8 @@ class BaseImage(File):
             file=self.file, name=self.file.name,
             source_storage=self.file.source_storage,
             thumbnail_storage=self.file.thumbnail_storage,
-            thumbnail_basedir=self.file.thumbnail_basedir)
+            thumbnail_basedir=self.file.thumbnail_basedir,
+            subject_location=self.subject_location)
         return tn
 
     class Meta(object):
