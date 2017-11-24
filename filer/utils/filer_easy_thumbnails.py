@@ -6,6 +6,7 @@ import os
 import re
 
 from easy_thumbnails.files import Thumbnailer
+from easy_thumbnails.options import ThumbnailOptions
 
 # match the source filename using `__` as the seperator. ``opts_and_ext`` is non
 # greedy so it should match the last occurence of `__`.
@@ -97,7 +98,25 @@ class ActionThumbnailerMixin(object):
 class FilerThumbnailer(ThumbnailerNameMixin, Thumbnailer):
     def __init__(self, *args, **kwargs):
         self.thumbnail_basedir = kwargs.pop('thumbnail_basedir', '')
+        self.subject_location = kwargs.pop('subject_location', '')
         super(FilerThumbnailer, self).__init__(*args, **kwargs)
+
+    def get_options(self, thumbnail_options, **kwargs):
+        """
+        Get the thumbnail options that includes the default options for this
+        thumbnailer (and the project-wide default options).
+        """
+        if isinstance(thumbnail_options, ThumbnailOptions):
+            return thumbnail_options
+        args = []
+        if thumbnail_options is not None:
+            args.append(thumbnail_options)
+        opts = ThumbnailOptions(*args, **kwargs)
+        if 'quality' not in thumbnail_options:
+            opts['quality'] = self.thumbnail_quality
+        if self.subject_location:
+            opts['subject_location'] = self.subject_location
+        return opts
 
 
 class FilerActionThumbnailer(ActionThumbnailerMixin, Thumbnailer):
