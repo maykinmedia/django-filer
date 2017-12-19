@@ -99,5 +99,13 @@ ImageAdmin.fieldsets = ImageAdmin.build_fieldsets(
             'fields': ('subject_location',),
             'classes': ('collapse',),
         }),
+        (_('Image Vault fields'), {
+            'fields': tuple(Image.image_vault_fields().keys()),
+            'classes': ('collapse',),
+        }),
+        (_('Image Vault metadata'), {
+            'fields': tuple(Image.image_vault_metadatafields().keys()),
+            'classes': ('collapse',),
+        }),
     )
 )
