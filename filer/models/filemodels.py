@@ -19,6 +19,7 @@ from ..fields.multistorage_file import MultiStorageFileField
 from ..utils.compatibility import python_2_unicode_compatible
 from .foldermodels import Folder
 from .imagevaultmodels import ImageVaultModel
+from .memorixmodels import MemorixModel
 
 try:
     from polymorphic.models import PolymorphicModel
@@ -43,7 +44,7 @@ class FileManager(PolymorphicManager):
 
 
 @python_2_unicode_compatible
-class File(PolymorphicModel, ImageVaultModel, mixins.IconsMixin):
+class File(PolymorphicModel, MemorixModel, ImageVaultModel, mixins.IconsMixin):
     file_type = 'File'
     _icon = "file"
     _file_data_changed_hint = None
