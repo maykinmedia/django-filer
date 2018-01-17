@@ -51,14 +51,14 @@ class MemorixModel(models.Model):
 
     # Asset data
     uuid = models.UUIDField(
-        null=True, default=None,
+        null=True, default=None, blank=True,
         help_text=_("Unique identifier for an asset. Base of the file name in the API"))
     dc_title = models.CharField(
         blank=True,
         max_length=100,
         help_text=_("Most readable image title. Duplicated in self.name field at the moment"))
     filename = models.UUIDField(
-        null=True, default=None,
+        null=True, default=None, blank=True,
         help_text=_("Not used at the moment"))
     mediatype = models.CharField(
         blank=True,
