@@ -11,7 +11,7 @@ from ..settings import FILER_IMAGE_MODEL
 from ..thumbnail_processors import normalize_subject_location
 from ..utils.loader import load_model
 from .fileadmin import FileAdmin
-from ..models.memorixmodels import Metadata, MetadataField
+from ..models.annefrank import Metadata, MetadataField
 
 Image = load_model(FILER_IMAGE_MODEL)
 
