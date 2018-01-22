@@ -2,7 +2,6 @@
 from __future__ import absolute_import
 
 from django import forms
-from django.contrib import admin
 from django.utils.translation import string_concat
 from django.utils.translation import ugettext as _
 from django.utils.translation import ugettext_lazy
@@ -11,7 +10,6 @@ from ..settings import FILER_IMAGE_MODEL
 from ..thumbnail_processors import normalize_subject_location
 from ..utils.loader import load_model
 from .fileadmin import FileAdmin
-from ..models.annefrank import Metadata, MetadataField
 
 Image = load_model(FILER_IMAGE_MODEL)
 
@@ -90,20 +88,8 @@ class ImageAdminForm(forms.ModelForm):
         )
 
 
-class MetadataInline(admin.TabularInline):
-    model = Metadata
-    extra = 0
-
-
-@admin.register(MetadataField)
-class MetadataFieldAdmin(admin.ModelAdmin):
-    pass
-
-
 class ImageAdmin(FileAdmin):
     form = ImageAdminForm
-
-    inlines = [MetadataInline]
 
 
 ImageAdmin.fieldsets = ImageAdmin.build_fieldsets(
@@ -111,18 +97,6 @@ ImageAdmin.fieldsets = ImageAdmin.build_fieldsets(
     extra_fieldsets=(
         (_('Subject location'), {
             'fields': ('subject_location',),
-            'classes': ('collapse',),
-        }),
-        (_('Image Vault fields'), {
-            'fields': tuple(Image.image_vault_fields().keys()),
-            'classes': ('collapse',),
-        }),
-        (_('Image Vault metadata'), {
-            'fields': tuple(Image.image_vault_metadatafields().keys()),
-            'classes': ('collapse',),
-        }),
-        (_('Memorix fields'), {
-            'fields': tuple(Image.memorix_fields().keys()),
             'classes': ('collapse',),
         }),
     )
