@@ -7,16 +7,11 @@ from django.http import HttpResponseRedirect
 from django.utils.translation import ugettext as _
 
 from .. import settings
-from ..settings import FILER_IMAGE_MODEL
-from ..choices import OriginChoices
 from ..models import File
 from ..utils.compatibility import unquote
-from ..utils.loader import load_model
+from .annefrankadmin import AnneFrankAdminMixin
 from .permissions import PrimitivePermissionAwareModelAdmin
 from .tools import AdminContext, admin_url_params_encoded, popup_status
-
-
-Image = load_model(FILER_IMAGE_MODEL)
 
 
 class FileAdminChangeFrom(forms.ModelForm):
@@ -25,7 +20,7 @@ class FileAdminChangeFrom(forms.ModelForm):
         exclude = ()
 
 
-class FileAdmin(PrimitivePermissionAwareModelAdmin):
+class FileAdmin(AnneFrankAdminMixin, PrimitivePermissionAwareModelAdmin):
     list_display = ('label',)
     list_per_page = 10
     search_fields = ['name', 'original_filename', 'sha1', 'description']
@@ -68,17 +63,6 @@ class FileAdmin(PrimitivePermissionAwareModelAdmin):
                 }),
             )
         return fieldsets
-
-    def get_readonly_fields(self, request, obj=None):
-        fields = super().get_readonly_fields(request, obj)
-        # assert False, fields
-        if obj and obj.origin == OriginChoices.memorix:
-            fields += ('name', 'description', 'file',)
-            fields += tuple(Image.memorix_fields().keys())
-            fields += tuple(Image.image_vault_fields().keys())
-            fields += tuple(Image.image_vault_metadatafields().keys())
-
-        return fields
 
     def response_change(self, request, obj):
         """
