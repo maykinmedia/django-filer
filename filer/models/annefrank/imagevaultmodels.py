@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.db import models
 from django.utils.translation import ugettext as _
 
@@ -53,15 +55,16 @@ class ImageVaultModel(models.Model):
             'album_id', 'file_id', 'file_name', 'name', 'page_id', 'page_name', 'page_title',
             'page_url', 'path', 'title', 'user_name', 'user_name2',
         ))
-        return {name: getattr(cls, name) for name in field_names}
+        return OrderedDict((name, getattr(cls, name)) for name in field_names)
 
     @classmethod
     def image_vault_metadatafields(cls):
         field_names = ('iv_metadata_' + f for f in (
-            'author', 'byline_title', 'caption_writer', 'city', 'compression', 'contact',
+            'title', 'author', 'keywords', 'headline', 'description', 'description_long',
+            'byline_title', 'caption_writer', 'city', 'compression', 'contact',
             'country', 'credit_line', 'date_created', 'date_from_category', 'date_time_created',
-            'description', 'description_long', 'duration', 'headline', 'instructions', 'job_id',
-            'keywords', 'orientation', 'original_filename', 'province', 'rights_usage_terms',
-            'source', 'status_online', 'sub_location', 'title'
+            'duration', 'instructions', 'job_id',
+            'orientation', 'original_filename', 'province', 'rights_usage_terms',
+            'source', 'status_online', 'sub_location'
         ))
-        return {name: getattr(cls, name) for name in field_names}
+        return OrderedDict((name, getattr(cls, name)) for name in field_names)

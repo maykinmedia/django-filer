@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import ugettext as _
@@ -116,7 +118,7 @@ class MemorixModel(models.Model):
 
     @classmethod
     def memorix_fields(cls):
-        return {name: getattr(cls, name) for name in (
+        field_names = [
             'default_alt_text',
             'default_caption',
             'uuid',
@@ -126,4 +128,6 @@ class MemorixModel(models.Model):
             'mediatype',
             'mimetype',
             'rank',
-        )}
+        ]
+        return OrderedDict((name, getattr(cls, name)) for name in (
+        ))
