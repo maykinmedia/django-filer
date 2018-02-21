@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.utils.translation import ugettext as _
-from django.db.models import Q
 
 from ..choices import OriginChoices
 from ..models.annefrank import Metadata, MetadataField
@@ -24,6 +23,7 @@ class MetadataInline(admin.TabularInline):
     max_num = extra
     can_delete = False
     readonly_fields = ('field', 'value')
+    template = 'admin/annefrank/tabular-metadata.html'
 
 
 @admin.register(MetadataField)
