@@ -17,38 +17,26 @@ def is_image_vault(obj):
     return obj and obj.origin == OriginChoices.image_vault
 
 
-class MetadataInline(admin.TabularInline):
-    model = Metadata
-    extra = 0
-    max_num = extra
-    can_delete = False
-    readonly_fields = ('field', 'value')
-    template = 'admin/annefrank/tabular-metadata.html'
-
-
-@admin.register(MetadataField)
-class MetadataFieldAdmin(admin.ModelAdmin):
-    pass
-
-
 class AnneFrankAdminMixin:
-
-    def get_inline_instances(self, request, obj=None):
-        if is_memorix(obj):
-            self.inlines = [MetadataInline]
-
-        return super().get_inline_instances(request, obj)
 
     def get_readonly_fields(self, request, obj=None):
         fields = super().get_readonly_fields(request, obj)
 
         if is_memorix(obj):
-            fields += ('name', 'description', 'file',)
+            fields += ('name', 'description', 'file')
             fields += tuple(Image.memorix_fields().keys())
             fields += tuple(Image.image_vault_fields().keys())
             fields += tuple(Image.image_vault_metadatafields().keys())
 
         return fields
+
+    def render_change_form(self, request, context, obj=None, **kwargs):
+        if is_memorix(obj):
+            self.change_form_template = 'admin/annefrank/change_form.html'
+            context['metadata_fields'] = obj.metadata_set.values('field__label', 'value')
+
+        return super().render_change_form(
+            request=request, context=context, obj=obj, **kwargs)
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)

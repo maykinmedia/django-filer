@@ -1,0 +1,23 @@
+{% extends "admin/filer/image/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+{% load annefrank %}
+
+{% block after_field_sets %}
+  {% if metadata_fields %}
+    <div class="tabular inline-related {% if forloop.last %}last-related{% endif %}">
+    <fieldset class="module">
+      <h2>Memorix metadata</h2>
+      <table>
+        <tbody>
+          {% for metadata in metadata_fields %}
+            <tr>
+              <td>{{ metadata.field__label }}</td>
+              <td>{{ metadata.value|flatten_json }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </fieldset>
+    </div>
+  {% endif %}
+{% endblock %}
