@@ -187,7 +187,7 @@ class BaseImage(File):
             position_x = int(location_x) / (self.width / 100)
             position_y = int(location_y) / (self.height / 100)
             return '{}% {}%'.format(position_x, position_y)
-        return '50%, 50%'
+        return '50% 50%'
 
     class Meta(object):
         app_label = 'filer'
