@@ -1,10 +1,11 @@
-from django.contrib import admin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.translation import ugettext as _
 
 from ..choices import OriginChoices
-from ..models.annefrank import Metadata, MetadataField
 from ..settings import FILER_IMAGE_MODEL
 from ..utils.loader import load_model
+from .tools import admin_url_params, admin_url_params_encoded
 
 Image = load_model(FILER_IMAGE_MODEL)
 
@@ -52,6 +53,16 @@ class AnneFrankAdminMixin:
             )
 
         return fieldsets
+
+    def get_admin_url_params_encoded(self, request, obj):
+        """
+        See modified admin.fileadmin.FileAdmin.response_change()
+        """
+        qs = admin_url_params(request)
+        pick_file = qs.get('_popup') == '1' and qs.get('_pick') == 'file'
+
+        params = {'params': {'q': obj.name}} if pick_file else {}
+        return admin_url_params_encoded(request, **params)
 
 
 class AnneFrankFolderAdminMixin:
