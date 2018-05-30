@@ -480,6 +480,8 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
                        models.Q(original_filename__icontains=term))
             for filter_ in self.get_owner_filter_lookups():
                 filters |= models.Q(**{filter_: term})
+            for filter_ in self.get_custom_lookups():
+                filters |= models.Q(**{filter_: term})
             for filter_ in self.get_image_vault_search_lookups():
                 filters |= models.Q(**{filter_: term})
             qs = qs.filter(filters)

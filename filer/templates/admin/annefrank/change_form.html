@@ -10,7 +10,7 @@
       <table>
         <tbody>
           {% for metadata in metadata_fields %}
-            <tr>
+            <tr id="id_{{ metadata.field__name }}">
               <td>{{ metadata.field__label }}</td>
               <td>{{ metadata.value|flatten_json }}</td>
             </tr>

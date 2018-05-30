@@ -34,7 +34,7 @@ class AnneFrankAdminMixin:
     def render_change_form(self, request, context, obj=None, **kwargs):
         if is_memorix(obj):
             self.change_form_template = 'admin/annefrank/change_form.html'
-            context['metadata_fields'] = obj.metadata_set.values('field__label', 'value')
+            context['metadata_fields'] = obj.metadata_set.values('field__name', 'field__label', 'value')
 
         return super().render_change_form(
             request=request, context=context, obj=obj, **kwargs)
@@ -74,6 +74,11 @@ class AnneFrankFolderAdminMixin:
         'iv_metadata_headline',
         'iv_metadata_keywords',
     ]
+
+    def get_custom_lookups(self):
+        return [
+            'filer_image_file__author__icontains',
+        ]
 
     def get_image_vault_search_lookups(self):
         return [
