@@ -119,8 +119,6 @@ class MemorixModel(models.Model):
     @classmethod
     def memorix_fields(cls):
         return OrderedDict((field, getattr(cls, field)) for field in [
-            'default_alt_text',
-            'default_caption',
             'uuid',
             'available_mimetypes',
             'dc_title',
