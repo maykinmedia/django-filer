@@ -35,10 +35,18 @@
                  width="10" height="10" alt="{% trans 'Clear' %}" title="{% trans 'Clear' %}"
                  data-no-icon-file="{% static 'filer/icons/nofile_48x48.png' %}">
 
+            {% if object %}
+           <a href="{{ object.get_admin_change_url }}" class="js-related-lookup related-edit related-lookup related-lookup-change lookup" id="{{ id }}_edit"
+               title="{% trans 'Edit' %}">
+                <span class="choose-file"><span class="fa fa-pencil-o"></span>{% trans 'Edit File' %}</span>
+                <span class="edit-file"><span class="fa fa-pencil"></span></span>
+           </a>
+           {% endif %}
+
             <a href="{{ lookup_url }}" class="js-related-lookup related-lookup {% if object %}related-lookup-change{% endif %} lookup" id="{{ id }}_lookup"
                title="{% trans 'Lookup' %}">
-                <span class="choose-file"><span class="fa fa-picture-o"></span>{% trans 'Choose File' %}</span>
-                <span class="edit-file"><span class="fa fa-pencil"></span></span>
+                <span class="choose-file"><span class="fa fa-search-o"></span>{% trans 'Choose File' %}</span>
+                <span class="edit-file"><span class="fa fa-search"></span></span>
             </a>
 
             <br>
