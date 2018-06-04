@@ -62,7 +62,7 @@ class AnneFrankAdminMixin:
         qs = admin_url_params(request)
         pick_file = qs.get('_popup') == '1' and qs.get('_pick') == 'file'
 
-        params = {'params': {'q': obj.name}} if pick_file else {}
+        params = {'params': {'q': obj.sha1}} if pick_file else {}
         return admin_url_params_encoded(request, **params)
 
 
@@ -78,6 +78,7 @@ class AnneFrankFolderAdminMixin:
 
     def get_custom_lookups(self):
         return [
+            'sha1',
             'filer_image_file__author__icontains',
         ]
 
