@@ -120,6 +120,7 @@ class MemorixModel(models.Model):
     def memorix_fields(cls):
         return OrderedDict((field, getattr(cls, field)) for field in [
             'uuid',
+            'media_id',
             'available_mimetypes',
             'dc_title',
             'filename',
