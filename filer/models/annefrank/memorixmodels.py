@@ -118,16 +118,15 @@ class MemorixModel(models.Model):
 
     @classmethod
     def memorix_fields(cls):
-        field_names = [
-            'default_alt_text',
-            'default_caption',
+        return OrderedDict((field, getattr(cls, field)) for field in [
             'uuid',
+            'media_id',
+            # 'default_alt_text',
+            # 'default_caption',
             'available_mimetypes',
             'dc_title',
             'filename',
             'mediatype',
             'mimetype',
             'rank',
-        ]
-        return OrderedDict((name, getattr(cls, name)) for name in (
-        ))
+        ])

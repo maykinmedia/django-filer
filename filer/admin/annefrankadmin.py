@@ -1,11 +1,14 @@
 from django.contrib import admin
-from django.utils.translation import ugettext as _
 from django.db.models import Q
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from django.utils.translation import ugettext as _
 
 from ..choices import OriginChoices
 from ..models.annefrank import Metadata, MetadataField
 from ..settings import FILER_IMAGE_MODEL
 from ..utils.loader import load_model
+from .tools import admin_url_params, admin_url_params_encoded
 
 Image = load_model(FILER_IMAGE_MODEL)
 
@@ -32,6 +35,7 @@ class MetadataFieldAdmin(admin.ModelAdmin):
 
 
 class AnneFrankAdminMixin:
+    save_on_top = True
 
     def get_inline_instances(self, request, obj=None):
         if is_memorix(obj):
@@ -43,12 +47,20 @@ class AnneFrankAdminMixin:
         fields = super().get_readonly_fields(request, obj)
 
         if is_memorix(obj):
-            fields += ('name', 'description', 'file',)
+            fields += ('name', 'description', 'file')
             fields += tuple(Image.memorix_fields().keys())
             fields += tuple(Image.image_vault_fields().keys())
             fields += tuple(Image.image_vault_metadatafields().keys())
 
         return fields
+
+    def render_change_form(self, request, context, obj=None, **kwargs):
+        if is_memorix(obj):
+            self.change_form_template = 'admin/annefrank/change_form.html'
+            context['metadata_fields'] = obj.metadata_set.values('field__name', 'field__label', 'value')
+
+        return super().render_change_form(
+            request=request, context=context, obj=obj, **kwargs)
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = super().get_fieldsets(request, obj)
@@ -64,6 +76,16 @@ class AnneFrankAdminMixin:
             )
 
         return fieldsets
+
+    def get_admin_url_params_encoded(self, request, obj):
+        """
+        See modified admin.fileadmin.FileAdmin.response_change()
+        """
+        qs = admin_url_params(request)
+        pick_file = qs.get('_popup') == '1' and qs.get('_pick') == 'file'
+
+        params = {'params': {'q': obj.sha1}} if pick_file else {}
+        return admin_url_params_encoded(request, **params)
 
 
 class AnneFrankFolderAdminMixin:

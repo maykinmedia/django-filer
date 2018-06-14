@@ -15,6 +15,7 @@
         var clearer = container.find('.filerClearer');
         var dropzoneMessage = container.siblings('.dz-message');
         var element = container.find(':input');
+        var edit_btn = container.find('.related-edit');
         var oldId = element.value;
 
         element.val(chosenId);
@@ -24,6 +25,9 @@
         clearer.removeClass('hidden');
         lookup.addClass('related-lookup-change');
         dropzoneMessage.addClass('hidden');
+        if (edit_btn) {
+            edit_btn.attr('href', '/admin/filer/image/' + chosenId + '/change/');
+        }
 
         if (oldId !== chosenId) {
             element.trigger('change');

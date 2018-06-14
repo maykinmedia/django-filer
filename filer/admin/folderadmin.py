@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, unicode_literals
 import itertools
 import os
 import re
+from collections import OrderedDict
 
 from django import forms
 from django.conf import settings as django_settings
@@ -79,8 +80,7 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
     search_fields = ['name', ]
     raw_id_fields = ('owner',)
     save_as = True  # see ImageAdmin
-    actions = ['files_set_public', 'files_set_private',
-               'delete_files_or_folders', 'move_files_and_folders',
+    actions = ['delete_files_or_folders', 'move_files_and_folders',
                'copy_files_and_folders', 'resize_images', 'rename_files']
 
     directory_listing_template = 'admin/filer/folder/directory_listing.html'
@@ -103,7 +103,7 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
 
             def folder_form_clean(form_obj):
                 cleaned_data = form_obj.cleaned_data
-                folders_with_same_name = Folder.objects.filter(
+                folders_with_same_name = self.get_queryset(request).filter(
                     parent=form_obj.instance.parent,
                     name=cleaned_data['name'])
                 if form_obj.instance.pk:
@@ -128,7 +128,7 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
         if not parent_id:
             parent_id = request.POST.get('parent_id', None)
         if parent_id:
-            parent = Folder.objects.get(id=parent_id)
+            parent = self.get_queryset(request).get(id=parent_id)
             r.parent = parent
         return r
 
@@ -192,7 +192,7 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
             self.delete_files_or_folders(
                 request,
                 files_queryset=File.objects.none(),
-                folders_queryset=Folder.objects.filter(id=object_id)
+                folders_queryset=self.get_queryset(request).filter(id=object_id)
             )
             if parent_folder:
                 url = reverse('admin:filer-directory_listing',
@@ -208,7 +208,7 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
         return self.delete_files_or_folders(
             request,
             files_queryset=File.objects.none(),
-            folders_queryset=Folder.objects.filter(id=object_id)
+            folders_queryset=self.get_queryset(request).filter(id=object_id)
         )
 
     def icon_img(self, xs):
@@ -261,8 +261,8 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
         elif viewtype == 'last':
             last_folder_id = request.session.get('filer_last_folder_id')
             try:
-                Folder.objects.get(id=last_folder_id)
-            except Folder.DoesNotExist:
+                self.get_queryset(request).get(id=last_folder_id)
+            except self.model.DoesNotExist:
                 url = reverse('admin:filer-directory_listing-root')
                 url = "%s%s" % (url, admin_url_params_encoded(request))
             else:
@@ -272,7 +272,7 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
         elif folder_id is None:
             folder = FolderRoot()
         else:
-            folder = get_object_or_404(Folder, id=folder_id)
+            folder = get_object_or_404(self.get_queryset(request), id=folder_id)
         request.session['filer_last_folder_id'] = folder_id
 
         # Check actions to see if any are available on this changelist
@@ -308,7 +308,7 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
                 file_qs = File.objects.filter(
                     folder__in=folder.get_descendants(include_self=True))
             else:
-                folder_qs = Folder.objects.all()
+                folder_qs = self.get_queryset(request)
                 file_qs = File.objects.all()
             folder_qs = self.filter_folder(folder_qs, search_terms)
             file_qs = self.filter_file(file_qs, search_terms)
@@ -429,7 +429,7 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
             'permissions': permissions,
             'permstest': userperms_for_request(folder, request),
             'current_url': request.path,
-            'title': 'Directory listing for %s' % folder.name,
+            'title': _('Directory listing for %(folder_name)s') % {'folder_name': folder.name},
             'search_string': ' '.join(search_terms),
             'q': urlquote(q),
             'show_result_count': show_result_count,
@@ -477,7 +477,9 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
         for term in terms:
             filters = (models.Q(name__icontains=term) |
                        models.Q(description__icontains=term) |
-                       models.Q(original_filename__icontains=term))
+                       models.Q(original_filename__icontains=term) |
+                       models.Q(sha1=term) |
+                       models.Q(filer_image_file__author__icontains=term))
             for filter_ in self.get_owner_filter_lookups():
                 filters |= models.Q(**{filter_: term})
             for filter_ in self.get_image_vault_search_lookups():
@@ -589,7 +591,14 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
             return None
 
     def get_actions(self, request):
-        actions = super(FolderAdmin, self).get_actions(request)
+        if settings.FILER_ENABLE_PERMISSIONS:
+            actions = OrderedDict()
+            actions['files_set_public'] = self.get_action('files_set_public')
+            actions['files_set_private'] = self.get_action('files_set_private')
+            actions.update(super(FolderAdmin, self).get_actions(request))
+        else:
+            actions = super(FolderAdmin, self).get_actions(request)
+
         if 'delete_selected' in actions:
             del actions['delete_selected']
         return actions
@@ -647,7 +656,9 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
         if not self.has_change_permission(request):
             raise PermissionDenied
 
-        if request.method != 'POST':
+        permissions_enabled = settings.FILER_ENABLE_PERMISSIONS
+
+        if request.method != 'POST' or not permissions_enabled:
             return None
 
         check_files_edit_permissions(request, files_queryset)
@@ -872,7 +883,7 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
                 yield c
 
     def _list_all_destination_folders(self, request, folders_queryset, current_folder, allow_self):
-        root_folders = Folder.objects.filter(parent__isnull=True).order_by('name')
+        root_folders = self.get_queryset(request).filter(parent__isnull=True).order_by('name')
         return list(self._list_all_destination_folders_recursive(request, folders_queryset, current_folder, root_folders, allow_self, 0))
 
     def _move_files_and_folders_impl(self, files_queryset, folders_queryset, destination):
@@ -896,15 +907,15 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
             if perms_needed:
                 raise PermissionDenied
             try:
-                destination = Folder.objects.get(pk=request.POST.get('destination'))
-            except Folder.DoesNotExist:
+                destination = self.get_queryset(request).get(pk=request.POST.get('destination'))
+            except self.model.DoesNotExist:
                 raise PermissionDenied
             folders_dict = dict(folders)
             if destination not in folders_dict or not folders_dict[destination][1]:
                 raise PermissionDenied
             # We count only topmost files and folders here
             n = files_queryset.count() + folders_queryset.count()
-            conflicting_names = [folder.name for folder in Folder.objects.filter(parent=destination, name__in=folders_queryset.values('name'))]
+            conflicting_names = [folder.name for folder in self.get_queryset(request).filter(parent=destination, name__in=folders_queryset.values('name'))]
             if conflicting_names:
                 messages.error(request, _("Folders with names %s already exist at the selected "
                                           "destination") % ", ".join(conflicting_names))
@@ -1104,8 +1115,8 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
             form = CopyFilesAndFoldersForm(request.POST)
             if form.is_valid():
                 try:
-                    destination = Folder.objects.get(pk=request.POST.get('destination'))
-                except Folder.DoesNotExist:
+                    destination = self.get_queryset(request).get(pk=request.POST.get('destination'))
+                except self.model.DoesNotExist:
                     raise PermissionDenied
                 folders_dict = dict(folders)
                 if destination not in folders_dict or not folders_dict[destination][1]:

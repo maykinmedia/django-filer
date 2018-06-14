@@ -86,7 +86,7 @@ class FileAdmin(AnneFrankAdminMixin, PrimitivePermissionAwareModelAdmin):
                     'admin:filer-directory_listing-unfiled_images')
             url = "{0}{1}".format(
                 url,
-                admin_url_params_encoded(request),
+                self.get_admin_url_params_encoded(request, obj),  # AFS
             )
             return HttpResponseRedirect(url)
         return super(FileAdmin, self).response_change(request, obj)
