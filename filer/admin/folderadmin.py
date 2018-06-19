@@ -46,7 +46,6 @@ from ..utils.compatibility import (
 )
 from ..utils.filer_easy_thumbnails import FilerActionThumbnailer
 from ..utils.loader import load_model
-from .annefrankadmin import AnneFrankFolderAdminMixin
 from .forms import CopyFilesAndFoldersForm, RenameFilesForm, ResizeImagesForm
 from .patched.admin_utils import get_deleted_objects
 from .permissions import PrimitivePermissionAwareModelAdmin
@@ -72,7 +71,7 @@ class AddFolderPopupForm(forms.ModelForm):
         fields = ('name',)
 
 
-class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin):
+class FolderAdmin(PrimitivePermissionAwareModelAdmin):
     list_display = ('name',)
     exclude = ('parent',)
     list_per_page = 20
@@ -481,8 +480,6 @@ class FolderAdmin(AnneFrankFolderAdminMixin, PrimitivePermissionAwareModelAdmin)
                        models.Q(sha1=term) |
                        models.Q(filer_image_file__author__icontains=term))
             for filter_ in self.get_owner_filter_lookups():
-                filters |= models.Q(**{filter_: term})
-            for filter_ in self.get_image_vault_search_lookups():
                 filters |= models.Q(**{filter_: term})
             qs = qs.filter(filters)
         return qs

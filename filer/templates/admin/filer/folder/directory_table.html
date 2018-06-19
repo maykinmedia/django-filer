@@ -121,8 +121,9 @@
                                         {{ file.label }}
                                         {% if has_change_permission or is_popup and filer_admin_context.pick_file %}
                                             </a>
-                                        {% endif %}
+                                            {% endif %}
                                     </strong>
+                                    {% if item.description %}<p>{{ item.description|truncatewords:20 }}</p>{% endif %}
                                 </div>
                                 {% if enable_permissions %}
                                     <div>{% trans "Permissions" %}: {% if file.is_public %}{% trans "disabled" %}{% else %}{% trans "enabled" %}{% endif %}</div>

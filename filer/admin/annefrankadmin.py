@@ -86,20 +86,3 @@ class AnneFrankAdminMixin:
 
         params = {'params': {'q': obj.sha1}} if pick_file else {}
         return admin_url_params_encoded(request, **params)
-
-
-class AnneFrankFolderAdminMixin:
-
-    image_vault_search_fields = [
-        'iv_metadata_author',
-        'iv_metadata_description',
-        'iv_metadata_description_long',
-        'iv_metadata_headline',
-        'iv_metadata_keywords',
-    ]
-
-    def get_image_vault_search_lookups(self):
-        return [
-            '{field}__icontains'.format(field=field)
-            for field in self.image_vault_search_fields
-        ]
