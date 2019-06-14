@@ -47,7 +47,7 @@
                                         &nbsp;
                                     </a>
                                 {% elif action_form and item.pk and not is_popup %}
-                                    <input type="checkbox" class="action-select" value="folder-{{ item.pk }}" name="_selected_action">
+                                    <input type="checkbox" class="action-select" value="folder-{{ item.pk|unlocalize }}" name="_selected_action">
                                 {% endif %}
                             </td>
                             <td class="column-icon">
@@ -92,7 +92,7 @@
                                     <a class="insertlink insertlinkButton" href="#" onclick="opener.dismissRelatedImageLookupPopup(window, {{ file.id|unlocalize }}, '{{ file.icons.48|escapejs }}', '{{ file.label|escapejs }}'); return false;"
                                         title="{% trans 'Select this file' %}">&nbsp;</a>
                                 {% elif action_form and not is_popup %}
-                                    <input type="checkbox" class="action-select" value="file-{{ item.pk }}" name="_selected_action">
+                                    <input type="checkbox" class="action-select" value="file-{{ item.pk|unlocalize }}" name="_selected_action">
                                 {% endif %}
                             </td>
                             <td class="column-icon">
