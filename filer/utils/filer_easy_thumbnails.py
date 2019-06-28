@@ -1,8 +1,11 @@
-#-*- coding: utf-8 -*-
-from easy_thumbnails.files import Thumbnailer
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+
 import os
 import re
-from filer import settings as filer_settings
+
+from easy_thumbnails.files import Thumbnailer
+
 
 # match the source filename using `__` as the seperator. ``opts_and_ext`` is non
 # greedy so it should match the last occurence of `__`.
@@ -32,10 +35,10 @@ class ThumbnailerNameMixin(object):
         """
         path, source_filename = os.path.split(self.name)
         source_extension = os.path.splitext(source_filename)[1][1:]
-        if self.thumbnail_preserve_extensions is True or  \
-            (self.thumbnail_preserve_extensions and
-             source_extension.lower() in self.thumbnail_preserve_extensions):
-                extension = source_extension
+        if self.thumbnail_preserve_extensions is True or \
+            (self.thumbnail_preserve_extensions and source_extension.lower()
+             in self.thumbnail_preserve_extensions):
+            extension = source_extension
         elif transparent:
             extension = self.thumbnail_transparency_extension
         else:
@@ -57,10 +60,13 @@ class ThumbnailerNameMixin(object):
         basedir = self.thumbnail_basedir
         subdir = self.thumbnail_subdir
 
-        #make sure our magic delimiter is not used in all_opts
+        # make sure our magic delimiter is not used in all_opts
         all_opts = all_opts.replace('__', '_')
         if high_resolution:
-            all_opts += '@2x'
+            try:
+                all_opts += self.thumbnail_highres_infix
+            except AttributeError:
+                all_opts += '@2x'
         filename = '%s__%s.%s' % (source_filename, all_opts, extension)
 
         return os.path.join(basedir, path, subdir, filename)

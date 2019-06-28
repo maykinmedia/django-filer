@@ -1,5 +1,17 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import re
+
+from django.utils import six
+
+from easy_thumbnails import processors
+
+from .settings import (
+    FILER_SUBJECT_LOCATION_IMAGE_DEBUG, FILER_WHITESPACE_COLOR,
+)
+
+
 try:
     from PIL import Image
     from PIL import ImageDraw
@@ -9,15 +21,13 @@ except ImportError:
         import ImageDraw
     except ImportError:
         raise ImportError("The Python Imaging Library was not found.")
-from easy_thumbnails import processors
-from filer.settings import FILER_SUBJECT_LOCATION_IMAGE_DEBUG, FILER_WHITESPACE_COLOR
 
 RE_SUBJECT_LOCATION = re.compile(r'^(\d+),(\d+)$')
 
 
 def normalize_subject_location(subject_location):
     if subject_location:
-        if isinstance(subject_location, str):
+        if isinstance(subject_location, six.string_types):
             m = RE_SUBJECT_LOCATION.match(subject_location)
             if m:
                 return (int(m.group(1)), int(m.group(2)))
@@ -30,7 +40,8 @@ def normalize_subject_location(subject_location):
 
 
 def scale_and_crop_with_subject_location(im, size, subject_location=False,
-                                         crop=False, upscale=False, **kwargs):
+                                         zoom=None, crop=False, upscale=False,
+                                         **kwargs):
     """
     Like ``easy_thumbnails.processors.scale_and_crop``, but will use the
     coordinates in ``subject_location`` to make sure that that part of the
@@ -44,7 +55,7 @@ def scale_and_crop_with_subject_location(im, size, subject_location=False,
     subject_location = normalize_subject_location(subject_location)
     if not (subject_location and crop):
         # use the normal scale_and_crop
-        return processors.scale_and_crop(im, size, crop=crop,
+        return processors.scale_and_crop(im, size, zoom=zoom, crop=crop,
                                          upscale=upscale, **kwargs)
 
     # for here on we have a subject_location and cropping is on
@@ -64,6 +75,12 @@ def scale_and_crop_with_subject_location(im, size, subject_location=False,
         target_x = source_x * scale
     elif not target_y:
         target_y = source_y * scale
+
+    if zoom:
+        if not crop:
+            target_x = round(source_x * scale)
+            target_y = round(source_y * scale)
+        scale *= (100 + int(zoom)) / 100.0
 
     if scale < 1.0 or (scale > 1.0 and upscale):
         im = im.resize((int(source_x * scale), int(source_y * scale)),
@@ -134,11 +151,12 @@ def whitespace(image, size, whitespace=False, whitespace_color=None, **kwargs):
 
     image = Image.new('RGBA', (target_x, target_y), whitespace_color)
     if source_x < target_x and source_y < target_y:  # whitespace all around
-        image.paste(old_image, ((target_x-source_x)/2, (target_y-source_y)/2))
+        image.paste(old_image, (
+            (target_x - source_x) / 2, (target_y - source_y) / 2))
     elif source_x < target_x:  # whitespace on top and bottom only
-        image.paste(old_image, ((target_x-source_x)/2, 0))
+        image.paste(old_image, ((target_x - source_x) / 2, 0))
     elif source_y < target_y:  # whitespace on sides only
-        image.paste(old_image, (0, (target_y-source_y)/2))
+        image.paste(old_image, (0, (target_y - source_y) / 2))
     else:  # no whitespace needed
         image = old_image
 

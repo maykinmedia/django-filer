@@ -16,23 +16,27 @@ Welcome to django-filer's documentation!
 ``django-filer`` is a file management application for django. It handles uploading
 and organizing files and images in contrib.admin.
 
-.. note:: upgrading from 0.8.7? Checkout :ref:`upgrading`.
++--------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------+
+| .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/filer_1.png | .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/filer_2.png |
++--------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------+
 
-.. figure:: _static/directory_view_1_screenshot.png
-   :scale: 50 %
-   :alt: directory view screenshot
+Filer detail view:
 
-   Directory list view with clipboard. New uploads are added to the clipboard 
-   and can then be filed into folders.
++-------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+| .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/detail_image.png | .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/detail_file.png |
++-------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------+
+
+Filer picker widget:
+
++--------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+| .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/file_picker_1.png | .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/file_picker_2.png |
++--------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
+| .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/file_picker_3.png |                                                                                                        |
++--------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------+
 
 Custom model fields are provided for use in 3rd party apps as a replacement for 
 the default ``FileField`` from django. Behind the scenes a ``ForeignKey`` to the 
 File model is used.
-
-.. figure:: _static/default_admin_file_widget.png
-   :alt: admin widget screenshot
-
-   Default admin widget for file fields
        
 Getting help
 ------------
@@ -40,15 +44,14 @@ Getting help
 * google group: http://groups.google.com/group/django-filer
 * IRC: #django-filer on freenode.net
 
-.. _contributing:
 
 Contributing
 ------------
 
-The code is hosted on github at http://github.com/stefanfoulis/django-filer/ 
+The code is hosted on github at http://github.com/divio/django-filer/
 and is fully open source. We hope you choose to help us on the project! More 
-about `how to contribute <https://github.com/stefanfoulis/django-filer/wiki/Contributing>`_ 
-can be found on `the wiki <https://github.com/stefanfoulis/django-filer/wiki/>`_.
+information on how to contribute can be found in `contributing`_.
+
 
 Contents
 ========
@@ -62,5 +65,11 @@ Contents
    permissions
    secure_downloads
    settings
+   development
    extending_filer
    running_tests
+   dump_payload
+   management_commands
+
+
+.. _`contributing`: development/#contributing

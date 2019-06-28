@@ -1,33 +1,43 @@
 {% extends "admin/filer/change_form.html" %}
-{% load i18n admin_modify %}
+{% load i18n admin_modify staticfiles %}
 
+{% block extrahead %}
+    {{ block.super }}
 
-{% block object-tools %}
-{% if change %}{% if not is_popup %}
-  <ul class="object-tools">
-    {#<li><a href="export/">{% trans "Export" %}</a></li>#}
-    <li><a href="history/" class="historylink">{% trans "History" %}</a></li>
-  {% if has_absolute_url %}<li><a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif%}
-  </ul>
-{% endif %}{% endif %}
-{% if is_popup %}
-<a class="insertlink insertlinkButton" href="" onclick="opener.dismissRelatedFolderLookupPopup(window, {{ object_id }}, '{{ original.thumbnails.admin_sidebar_preview }}', '{{ original.original_filename }}'); return false;" >Select image from popup</a>
-{% endif %}
-
-{% if original.folder %}
-<a href="{{ original.folder.get_admin_directory_listing_url_path }}{% if is_popup %}?t=file_ptr&pop=1{% endif %}">Folder: {{ original.folder }}</a>
-{% endif %}
-
+    {# upload stuff #}
+    <script type="text/javascript">
+        var __jQuery = django.jQuery;
+        window.jQuery = (__jQuery) ? __jQuery : window.jQuery || undefined;
+        window.$ = window.jQuery;
+    </script>
+    <script src="{% static 'filer/js/libs/class.min.js' %}"></script>
+    <script src="{% static 'filer/js/libs/jquery-ui.min.js' %}"></script>
+    <script src="{% static 'filer/js/libs/jquery.cookie.min.js' %}"></script>
+    <script src="{% static 'filer/js/libs/fileuploader.min.js' %}"></script>
+    <script src="{% static 'filer/js/libs/mediator.min.js' %}"></script>
+    <script src="{% static 'filer/js/libs/retina.min.js' %}"></script>
+    <script src="{% static 'admin/js/admin/RelatedObjectLookups.js' %}"></script>
+    <script src="{% static 'filer/js/addons/popup_handling.js' %}"></script>
+    <script src="{% static 'filer/js/addons/focal-point.js' %}"></script>
+    <script src="{% static 'filer/js/addons/toggler.js' %}"></script>
+    <script src="{% static 'filer/js/base.js' %}"></script>
+    <script type="text/javascript">
+        var __jQuery;
+        var __$;
+        // reassign jQuery if jQuery is already loaded
+        __jQuery = (window.jQuery) ? window.jQuery.noConflict(true) : undefined;
+        __$ = __jQuery;
+    </script>
 {% endblock %}
 
-{% block file_sidebar %}
-<div id="navcontainer">
-    <div id="image_container">
-        <img src="{{ original.thumbnails.admin_sidebar_preview }}" alt="{{ original.label }}" rel="{{ adminform.form.sidebar_image_ratio }}" />
-        <div id="paper">&nbsp;</div>
-    </div>
-    <a href="{{ original.url }}">{% trans "Full size preview" %}</a>
-
-</div>
-{{ block.super }}
+{% block object-tools %}
+    {% if change and not is_popup %}
+        <ul class="object-tools">
+            <li><a href="{% url history_url object_id %}" class="historylink">{% trans "History" %}</a></li>
+            {% if has_absolute_url %}
+                <li><a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="viewsitelink">{% trans "View on site" %}</a></li>
+            {% endif%}
+        </ul>
+    {% endif %}
+    {% include "admin/filer/tools/detail_info.html" with detail=True %}
 {% endblock %}

@@ -1,16 +1,20 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+
+from django.conf import settings
 from django.contrib.auth import models as auth_models
-from django.core import urlresolvers
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Q
+from django.urls import reverse
+from django.utils.encoding import python_2_unicode_compatible
 from django.utils.http import urlquote
 from django.utils.translation import ugettext_lazy as _
-from django.conf import settings
-from filer.models import mixins
-from filer import settings as filer_settings
 
 import mptt
+
+from .. import settings as filer_settings
+from . import mixins
 
 
 class FolderManager(models.Manager):
@@ -79,6 +83,7 @@ class FolderPermissionManager(models.Manager):
         return allow_list - deny_list
 
 
+@python_2_unicode_compatible
 class Folder(models.Model, mixins.IconsMixin):
     """
     Represents a Folder that things (files) can be put into. Folders are *NOT*
@@ -94,18 +99,36 @@ class Folder(models.Model, mixins.IconsMixin):
     can_have_subfolders = True
     _icon = 'plainfolder'
 
-    parent = models.ForeignKey('self', verbose_name=('parent'), null=True, blank=True,
-                               related_name='children')
+    # explicitly define MPTT fields which would otherwise change
+    # and create a migration, depending on django-mptt version
+    # (see: https://github.com/django-mptt/django-mptt/pull/578)
+    level = models.PositiveIntegerField(editable=False)
+    lft = models.PositiveIntegerField(editable=False)
+    rght = models.PositiveIntegerField(editable=False)
+
+    parent = models.ForeignKey(
+        'self',
+        verbose_name=('parent'),
+        null=True,
+        blank=True,
+        related_name='children',
+        on_delete=models.CASCADE,
+    )
     name = models.CharField(_('name'), max_length=255)
 
-    owner = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), verbose_name=('owner'),
-                              related_name='filer_owned_folders',
-                              null=True, blank=True)
+    owner = models.ForeignKey(
+        getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
+        verbose_name=_('owner'),
+        related_name='filer_owned_folders',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     uploaded_at = models.DateTimeField(_('uploaded at'), auto_now_add=True)
 
     created_at = models.DateTimeField(_('created at'), auto_now_add=True)
-    modified_at = models.DateTimeField(_('modified at'),auto_now=True)
+    modified_at = models.DateTimeField(_('modified at'), auto_now=True)
 
     objects = FolderManager()
 
@@ -143,7 +166,7 @@ class Folder(models.Model, mixins.IconsMixin):
 
     @property
     def pretty_logical_path(self):
-        return "/%s" % "/".join([f.name for f in self.logical_path+[self]])
+        return "/%s" % "/".join([f.name for f in self.logical_path + [self]])
 
     @property
     def quoted_logical_path(self):
@@ -164,7 +187,7 @@ class Folder(models.Model, mixins.IconsMixin):
         folder. Return the string 'ALL' if the user has all rights.
         """
         user = request.user
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return False
         elif user.is_superuser:
             return True
@@ -192,15 +215,24 @@ class Folder(models.Model, mixins.IconsMixin):
                     self.permission_cache[permission_type] = self.id in permission
             return self.permission_cache[permission_type]
 
-    def get_admin_url_path(self):
-        return urlresolvers.reverse('admin:filer_folder_change',
-                                    args=(self.id,))
+    def get_admin_change_url(self):
+        return reverse('admin:filer_folder_change', args=(self.id,))
 
     def get_admin_directory_listing_url_path(self):
-        return urlresolvers.reverse('admin:filer-directory_listing',
-                                    args=(self.id,))
+        return reverse('admin:filer-directory_listing', args=(self.id,))
 
-    def __unicode__(self):
+    def get_admin_delete_url(self):
+        try:
+            # Django <=1.6
+            model_name = self._meta.module_name
+        except AttributeError:
+            # Django >1.6
+            model_name = self._meta.model_name
+        return reverse(
+            'admin:{0}_{1}_delete'.format(self._meta.app_label, model_name,),
+            args=(self.pk,))
+
+    def __str__(self):
         return "%s" % (self.name,)
 
     def contains_folder(self, folder_name):
@@ -210,7 +242,9 @@ class Folder(models.Model, mixins.IconsMixin):
         except Folder.DoesNotExist:
             return False
 
-    class Meta:
+    class Meta(object):
+        # see: https://github.com/django-mptt/django-mptt/pull/577
+        index_together = (('tree_id', 'lft'),)
         unique_together = (('parent', 'name'),)
         ordering = ('name',)
         permissions = (("can_use_directory_listing",
@@ -219,6 +253,7 @@ class Folder(models.Model, mixins.IconsMixin):
         verbose_name = _("Folder")
         verbose_name_plural = _("Folders")
 
+
 # MPTT registration
 try:
     mptt.register(Folder)
@@ -226,6 +261,7 @@ except mptt.AlreadyRegistered:
     pass
 
 
+@python_2_unicode_compatible
 class FolderPermission(models.Model):
     ALL = 0
     THIS = 1
@@ -245,15 +281,26 @@ class FolderPermission(models.Model):
         (DENY, _('deny')),
     )
 
-    folder = models.ForeignKey(Folder, verbose_name=('folder'), null=True, blank=True)
+    folder = models.ForeignKey(
+        Folder,
+        verbose_name=('folder'),
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
 
     type = models.SmallIntegerField(_('type'), choices=TYPES, default=ALL)
     user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
-                             related_name="filer_folder_permissions",
+                             related_name="filer_folder_permissions", on_delete=models.SET_NULL,
                              verbose_name=_("user"), blank=True, null=True)
-    group = models.ForeignKey(auth_models.Group,
-                              related_name="filer_folder_permissions",
-                              verbose_name=_("group"), blank=True, null=True)
+    group = models.ForeignKey(
+        auth_models.Group,
+        related_name="filer_folder_permissions",
+        verbose_name=_("group"),
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
     everybody = models.BooleanField(_("everybody"), default=False)
 
     can_edit = models.SmallIntegerField(_("can edit"), choices=PERMISIONS, blank=True, null=True, default=None)
@@ -262,7 +309,7 @@ class FolderPermission(models.Model):
 
     objects = FolderPermissionManager()
 
-    def __unicode__(self):
+    def __str__(self):
         if self.folder:
             name = '%s' % self.folder
         else:
@@ -286,8 +333,8 @@ class FolderPermission(models.Model):
                 perms.append('!%s' % s)
         perms = ', '.join(perms)
         return "Folder: '%s'->%s [%s] [%s]" % (
-                        name, unicode(self.TYPES[self.type][1]),
-                        perms, usergroup)
+            name, self.get_type_display(),
+            perms, usergroup)
 
     def clean(self):
         if self.type == self.ALL and self.folder:
@@ -299,7 +346,7 @@ class FolderPermission(models.Model):
         if not self.user and not self.group and not self.everybody:
             raise ValidationError('At least one of user, group, or "everybody" has to be selected.')
 
-    class Meta:
+    class Meta(object):
         verbose_name = _('folder permission')
         verbose_name_plural = _('folder permissions')
         app_label = 'filer'

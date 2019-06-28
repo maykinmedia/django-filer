@@ -1,15 +1,27 @@
-#-*- coding: utf-8 -*-
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+
 from django.conf import settings
-from filer.models import filemodels
+from django.db import models
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.translation import ugettext_lazy as _
+
+from . import filemodels
 
 
+@python_2_unicode_compatible
 class Clipboard(models.Model):
-    user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), verbose_name=_('user'), related_name="filer_clipboards")
+    user = models.ForeignKey(
+        getattr(settings, 'AUTH_USER_MODEL', 'auth.User'),
+        verbose_name=_('user'), related_name="filer_clipboards",
+        on_delete=models.CASCADE,
+    )
     files = models.ManyToManyField(
-                        'File', verbose_name=_('files'), related_name="in_clipboards",
-                        through='ClipboardItem')
+        'File',
+        verbose_name=_('files'),
+        related_name="in_clipboards",
+        through='ClipboardItem',
+    )
 
     def append_file(self, file_obj):
         try:
@@ -21,20 +33,28 @@ class Clipboard(models.Model):
             newitem.save()
             return True
 
-    def __unicode__(self):
+    def __str__(self):
         return "Clipboard %s of %s" % (self.id, self.user)
 
-    class Meta:
+    class Meta(object):
         app_label = 'filer'
         verbose_name = _('clipboard')
         verbose_name_plural = _('clipboards')
 
 
 class ClipboardItem(models.Model):
-    file = models.ForeignKey('File', verbose_name=_('file'))
-    clipboard = models.ForeignKey(Clipboard, verbose_name=_('clipboard'))
+    file = models.ForeignKey(
+        'File',
+        verbose_name=_('file'),
+        on_delete=models.CASCADE,
+    )
+    clipboard = models.ForeignKey(
+        Clipboard,
+        verbose_name=_('clipboard'),
+        on_delete=models.CASCADE,
+    )
 
-    class Meta:
+    class Meta(object):
         app_label = 'filer'
         verbose_name = _('clipboard item')
         verbose_name_plural = _('clipboard items')

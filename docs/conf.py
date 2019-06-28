@@ -14,8 +14,8 @@
 import sys, os
 sys.path.append(os.path.abspath('../'))
 import datetime
-import filer
 
+from filer import __version__
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -45,17 +45,17 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'django-filer'
-copyright = u'%s, Stefan Foulis' % (datetime.date.today().year,)
+project = 'django-filer'
+copyright = '%s, Stefan Foulis' % (datetime.date.today().year,)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = '.'.join(filer.__version__.split('.')[0:2])
+version = '.'.join(__version__.split('.')[0:2])
 # The full version, including alpha/beta/rc tags.
-release = filer.__version__
+release = __version__
 
 for c in ('a', 'b', 'dev', 'r'):
     if c in release:
@@ -188,8 +188,8 @@ htmlhelp_basename = 'django-filerdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'django-filer.tex', u'django-filer Documentation',
-   u'Stefan Foulis', 'manual'),
+  ('index', 'django-filer.tex', 'django-filer Documentation',
+   'Stefan Foulis', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

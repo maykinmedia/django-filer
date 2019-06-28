@@ -1,11 +1,11 @@
-#-*- coding: utf-8 -*-
-try:
-    # django >=1.4
-    from django.conf.urls import patterns, url
-except ImportError:
-    # django <1.4
-    from django.conf.urls.defaults import patterns, url
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
-urlpatterns = patterns('filer.server.views',
-    url(r'^(?P<path>.*)$', 'serve_protected_file',),
-)
+from django.conf.urls import url
+
+from . import views
+
+
+urlpatterns = [
+    url(r'^(?P<path>.*)$', views.serve_protected_file),
+]

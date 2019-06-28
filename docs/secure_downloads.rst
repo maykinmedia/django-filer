@@ -23,12 +23,12 @@ that would bypass the permission checks.
 To hook up the view ``filer.server.urls`` needs to be included in the root
 ``urls.py``::
 
-    urlpatterns += patterns('',
+    urlpatterns += [
         url(r'^', include('filer.server.urls')),
-    )
+    ]
 
 Files with restricted permissions need to be placed in a secure storage backend.
-Configure a secure storage backedn in :ref:`FILER_STORAGES` or use the default.
+Configure a secure storage backend in :ref:`FILER_STORAGES` or use the default.
 
 .. warning:: The "Permissions disabled" checkbox in the file detail view in Django admin
              controls in which storage backend the file is saved. In order for it to be
@@ -132,6 +132,7 @@ in ``settings.py``::
 
 in your apache configuration::
 
+    XSendFile On
     XSendFilePath /path/to/smedia/
 
 ``XSendFilePath`` is a whitelist for directories where apache will serve files

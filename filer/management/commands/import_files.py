@@ -1,12 +1,19 @@
-#-*- coding: utf-8 -*-
-from django.core.files import File as DjangoFile
-from django.core.management.base import BaseCommand, NoArgsCommand
-from filer.models.filemodels import File
-from filer.models.foldermodels import Folder
-from filer.models.imagemodels import Image
-from filer.settings import FILER_IS_PUBLIC_DEFAULT
-from optparse import make_option
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+
 import os
+
+from django.core.files import File as DjangoFile
+from django.core.management.base import BaseCommand
+
+from ...models.filemodels import File
+from ...models.foldermodels import Folder
+from ...settings import FILER_IMAGE_MODEL, FILER_IS_PUBLIC_DEFAULT
+from ...utils.compatibility import upath
+from ...utils.loader import load_model
+
+
+Image = load_model(FILER_IMAGE_MODEL)
 
 
 class FileImporter(object):
@@ -24,22 +31,22 @@ class FileImporter(object):
         """
         try:
             iext = os.path.splitext(file_obj.name)[1].lower()
-        except:
+        except:  # noqa
             iext = ''
         if iext in ['.jpg', '.jpeg', '.png', '.gif']:
             obj, created = Image.objects.get_or_create(
-                                original_filename=file_obj.name,
-                                file=file_obj,
-                                folder=folder,
-                                is_public=FILER_IS_PUBLIC_DEFAULT)
+                original_filename=file_obj.name,
+                file=file_obj,
+                folder=folder,
+                is_public=FILER_IS_PUBLIC_DEFAULT)
             if created:
                 self.image_created += 1
         else:
             obj, created = File.objects.get_or_create(
-                                original_filename=file_obj.name,
-                                file=file_obj,
-                                folder=folder,
-                                is_public=FILER_IS_PUBLIC_DEFAULT)
+                original_filename=file_obj.name,
+                file=file_obj,
+                folder=folder,
+                is_public=FILER_IS_PUBLIC_DEFAULT)
             if created:
                 self.file_created += 1
         if self.verbosity >= 2:
@@ -66,8 +73,7 @@ class FileImporter(object):
             if created:
                 self.folder_created += 1
                 if self.verbosity >= 2:
-                    print("folder_created #%s folder : %s -- created : %s" % (self.folder_created,
-                                                                               current_parent, created))
+                    print("folder_created #%s folder : %s -- created : %s" % (self.folder_created, current_parent, created))
         return current_parent
 
     def walker(self, path=None, base_folder=None):
@@ -75,14 +81,12 @@ class FileImporter(object):
         This method walk a directory structure and create the
         Folders and Files as they appear.
         """
-        path = path or self.path
+        path = path or self.path or ''
         base_folder = base_folder or self.base_folder
         # prevent trailing slashes and other inconsistencies on path.
-        # cast to unicode so that os.walk returns path names in unicode
-        # (prevents encoding/decoding errors)
-        path = unicode(os.path.normpath(path))
+        path = os.path.normpath(upath(path))
         if base_folder:
-            base_folder = unicode(os.path.normpath(base_folder))
+            base_folder = os.path.normpath(upath(base_folder))
             print("The directory structure will be imported in %s" % (base_folder,))
         if self.verbosity >= 1:
             print("Import the folders and files in %s" % (path,))
@@ -97,37 +101,37 @@ class FileImporter(object):
                 folder_names = [root_folder_name] + rel_folders
             folder = self.get_or_create_folder(folder_names)
             for file_obj in files:
-                dj_file = DjangoFile(open(os.path.join(root, file_obj), 'rb'),
+                dj_file = DjangoFile(open(os.path.join(root, file_obj), mode='rb'),
                                      name=file_obj)
                 self.import_file(file_obj=dj_file, folder=folder)
         if self.verbosity >= 1:
-            print(('folder_created #%s / file_created #%s / ' + \
-                       'image_created #%s') % (
-                    self.folder_created, self.file_created,
-                    self.image_created))
+            print(('folder_created #%s / file_created #%s / ' + 'image_created #%s') % (self.folder_created, self.file_created, self.image_created))
 
 
-class Command(NoArgsCommand):
+class Command(BaseCommand):
     """
     Import directory structure into the filer ::
 
         manage.py --path=/tmp/assets/images
         manage.py --path=/tmp/assets/news --folder=images
     """
-
-    option_list = BaseCommand.option_list + (
-        make_option('--path',
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--path',
             action='store',
             dest='path',
-            default=False,
-            help='Import files located in the path into django-filer'),
-        make_option('--folder',
+            required=True,
+            help='Import files located in the path into django-filer'
+        )
+
+        parser.add_argument(
+            '--folder',
             action='store',
             dest='base_folder',
             default=False,
-            help='Specify the destination folder in which the directory structure should be imported'),
+            help='Specify the destination folder in which the directory structure should be imported'
         )
 
-    def handle_noargs(self, **options):
+    def handle(self, *args, **options):
         file_importer = FileImporter(**options)
         file_importer.walker()

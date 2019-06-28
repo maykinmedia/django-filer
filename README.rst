@@ -1,72 +1,57 @@
 ============
-django-filer
+Django Filer
 ============
 
+|pypi| |build| |coverage|
 
-A file management application for django that makes handling of files and images a breeze.
+**django Filer** is a file management application for django that makes 
+handling of files and images a breeze.
 
-.. figure:: docs/_static/directory_view_1_screenshot.png
-   :scale: 50 %
-   :alt: file browser
+.. We're using absolute image url below, because relative paths won't work on
+   pypi. github would render relative paths correctly.
 
-Filer picker widget: |file-picker-widget-screeshot|
-
-.. |file-picker-widget-screeshot| image:: docs/_static/default_admin_file_widget.png
-
-
-Documentation: http://django-filer.readthedocs.org/en/latest/index.html
-
-Wiki: https://github.com/stefanfoulis/django-filer/wiki
-
-Dependencies
-------------
-
-* `Django`_ >= 1.3 (with ``django.contrib.staticfiles``)
-* django-mptt >= 0.2.1
-* `easy_thumbnails`_ >= 1.0-alpha-17
-* `django-polymorphic`_ >= 0.2 (<=0.4.0 when used with django 1.3.x)
-* `PIL`_ 1.1.7 (with JPEG and ZLIB support)
-
-Installation
-------------
-
-To get started using ``django-filer`` simply install it with
-``pip``::
-
-    $ pip install django-filer
++---------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
+| .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/filer_2.png        | .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/filer_3.png        |
++---------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
+| .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/detail_image.png   | .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/detail_file.png    |
++---------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
+| .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/file_picker_1.png  | .. image:: https://raw.githubusercontent.com/divio/django-filer/develop/docs/_static/file_picker_3.png  |
++---------------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+
 
 
-Configuration
--------------
+Contributing
+============
 
-Add ``"filer"``, ``"mptt"`` and ``"easy_thumbnails"`` to your project's ``INSTALLED_APPS`` setting and run ``syncdb``
-(and ``migrate`` if you're using South).
+This is a an open-source project. We'll be delighted to receive your
+feedback in the form of issues and pull requests. Before submitting your
+pull request, please review our `contribution guidelines
+<http://docs.django-cms.org/en/latest/contributing/index.html>`_.
 
-See the docs for advanced configuration:
+We're grateful to all contributors who have helped create and maintain this package.
+Contributors are listed at the `contributors <https://github.com/divio/django-filer/graphs/contributors>`_
+section.
 
-  * `subject location docs`_
-  * `permission docs`_ (experimental)
-  * `secure file downloads docs`_ (experimental)
-
-
-Testsuite
----------
-
-The easiest way to run the testsuite is to checkout the code, make sure you have ``PIL`` installed, and run::
-
-    python setup.py test
+One of the easiest contributions you can make is helping to translate this addon on
+`Transifex <https://www.transifex.com/projects/p/django-filer/>`_.
 
 
-For serious testing ``tox`` is recommended. See documentation for details.
+Documentation
+=============
+
+Please head over to the separate `documentation <https://django-filer.readthedocs.io/en/latest/index.html>`_
+for all the details on how to install, configure and use django-filer.
+
+|python| |django|
 
 
-.. _Django: http://djangoproject.com
-.. _django-polymorphic: https://github.com/bconstantin/django_polymorphic
-.. _easy_thumbnails: https://github.com/SmileyChris/easy-thumbnails
-.. _sorl.thumbnail: http://thumbnail.sorl.net/
-.. _PIL: http://www.pythonware.com/products/pil/
-.. _Pillow: http://pypi.python.org/pypi/Pillow/
-.. _docs: http://django-filer.readthedocs.org/en/latest/index.html
-.. _subject location docs: http://django-filer.readthedocs.org/en/latest/installation.html#subject-location-aware-cropping
-.. _permission docs: http://django-filer.readthedocs.org/en/latest/permissions.html
-.. _secure file downloads docs: http://django-filer.readthedocs.org/en/latest/secure_downloads.html
+.. |pypi| image:: https://badge.fury.io/py/django-filer.svg
+    :target: http://badge.fury.io/py/django-filer
+.. |build| image:: https://travis-ci.org/divio/django-filer.svg?branch=master
+    :target: https://travis-ci.org/divio/django-filer
+.. |coverage| image:: https://codecov.io/gh/divio/django-filer/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/divio/django-filer
+
+.. |python| image:: https://img.shields.io/badge/python-2.7%20%7C%203.4+-blue.svg
+    :target: https://pypi.org/project/django-filer/
+.. |django| image:: https://img.shields.io/badge/django-1.11%20%7C%202.1%20%7C%202.2-blue.svg
+    :target: https://www.djangoproject.com/

@@ -1,9 +1,13 @@
-#-*- coding: utf-8 -*-
-from django.core import urlresolvers
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
-from filer.models import mixins
-from filer.models.filemodels import File
-from filer.models.foldermodels import Folder
+
+from .. import settings as filer_settings
+from . import mixins
+from .filemodels import File
+from .foldermodels import Folder
 
 
 class DummyFolder(mixins.IconsMixin):
@@ -41,9 +45,10 @@ class DummyFolder(mixins.IconsMixin):
         return []
 
 
-class UnfiledImages(DummyFolder):
-    name = _("unfiled files")
+class UnsortedImages(DummyFolder):
+    name = _("Unsorted Uploads")
     is_root = True
+    is_unsorted_uploads = True
     _icon = "unfiled_folder"
 
     def _files(self):
@@ -51,8 +56,8 @@ class UnfiledImages(DummyFolder):
     files = property(_files)
 
     def get_admin_directory_listing_url_path(self):
-        return urlresolvers.reverse(
-                            'admin:filer-directory_listing-unfiled_images')
+        return reverse(
+            'admin:filer-directory_listing-unfiled_images')
 
 
 class ImagesWithMissingData(DummyFolder):
@@ -65,8 +70,8 @@ class ImagesWithMissingData(DummyFolder):
         return File.objects.filter(has_all_mandatory_data=False)
 
     def get_admin_directory_listing_url_path(self):
-        return urlresolvers.reverse(
-                    'admin:filer-directory_listing-images_with_missing_data')
+        return reverse(
+            'admin:filer-directory_listing-images_with_missing_data')
 
 
 class FolderRoot(DummyFolder):
@@ -77,10 +82,12 @@ class FolderRoot(DummyFolder):
 
     @property
     def virtual_folders(self):
-        return [UnfiledImages()]
+        return [UnsortedImages()]
 
     @property
     def children(self):
+        if filer_settings.FILER_ENABLE_PERMISSIONS:
+            return Folder.objects.all()
         return Folder.objects.filter(parent__isnull=True)
     parent_url = None
 
@@ -92,4 +99,4 @@ class FolderRoot(DummyFolder):
             return False
 
     def get_admin_directory_listing_url_path(self):
-        return urlresolvers.reverse('admin:filer-directory_listing-root')
+        return reverse('admin:filer-directory_listing-root')

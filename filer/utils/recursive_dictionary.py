@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # https://gist.github.com/114831
 # recursive_dictionary.py
@@ -24,7 +24,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from __future__ import absolute_import
+
+from django.utils import six
+
+
 __author__ = 'jannis@itisme.org (Jannis Andrija Schnitzer)'
+
 
 class RecursiveDictionary(dict):
     """RecursiveDictionary provides the methods rec_update and iter_rec_update
@@ -41,11 +47,11 @@ class RecursiveDictionary(dict):
         {'foo': {'baz': 36, 'bar': 42}}
         """
         try:
-            iterator = other.items()
+            iterator = six.iteritems(other)
         except AttributeError:
             iterator = other
         self.iter_rec_update(iterator)
-        self.iter_rec_update(third.items())
+        self.iter_rec_update(six.iteritems(third))
 
     def iter_rec_update(self, iterator):
         for (key, value) in iterator:

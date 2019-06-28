@@ -1,5 +1,7 @@
-#-*- coding: utf-8 -*-
-from filer.models import Clipboard
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
+from . import Clipboard
 
 
 def discard_clipboard(clipboard):
@@ -12,7 +14,7 @@ def delete_clipboard(clipboard):
 
 
 def get_user_clipboard(user):
-    if user.is_authenticated():
+    if user.is_authenticated:
         clipboard = Clipboard.objects.get_or_create(user=user)[0]
         return clipboard
 

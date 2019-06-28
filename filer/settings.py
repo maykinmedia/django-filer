@@ -1,12 +1,27 @@
-#-*- coding: utf-8 -*-
-from django.conf import settings
-from django.core.files.storage import get_storage_class
-from filer.utils.loader import load_object
-from filer.utils.recursive_dictionary import RecursiveDictionaryWithExcludes
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
+import logging
 import os
 
+from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
+from django.core.files.storage import get_storage_class
 
-FILER_DEBUG = getattr(settings, 'FILER_DEBUG', False) # When True makes
+from .utils.loader import load_object
+from .utils.recursive_dictionary import RecursiveDictionaryWithExcludes
+
+
+logger = logging.getLogger(__name__)
+
+# FILER_IMAGE_MODEL setting is used to swap Image model.
+# If such global setting does not exist, it will be created at this point (with default model name).
+# This is needed especially when using this setting in migrations.
+if not hasattr(settings, 'FILER_IMAGE_MODEL'):
+    setattr(settings, 'FILER_IMAGE_MODEL', 'filer.Image')
+FILER_IMAGE_MODEL = settings.FILER_IMAGE_MODEL
+
+FILER_DEBUG = getattr(settings, 'FILER_DEBUG', False)  # When True makes
 FILER_SUBJECT_LOCATION_IMAGE_DEBUG = getattr(settings, 'FILER_SUBJECT_LOCATION_IMAGE_DEBUG', False)
 FILER_WHITESPACE_COLOR = getattr(settings, 'FILER_WHITESPACE_COLOR', '#FFFFFF')
 
@@ -14,31 +29,37 @@ FILER_0_8_COMPATIBILITY_MODE = getattr(settings, 'FILER_0_8_COMPATIBILITY_MODE',
 
 FILER_ENABLE_LOGGING = getattr(settings, 'FILER_ENABLE_LOGGING', False)
 if FILER_ENABLE_LOGGING:
-    FILER_ENABLE_LOGGING = (FILER_ENABLE_LOGGING and (getattr(settings,'LOGGING') and
-                                                      ('' in settings.LOGGING['loggers'] or
-                                                       'filer' in settings.LOGGING['loggers'])))
+    FILER_ENABLE_LOGGING = (
+        FILER_ENABLE_LOGGING and (getattr(settings, 'LOGGING')
+                             and ('' in settings.LOGGING['loggers']
+                             or 'filer' in settings.LOGGING['loggers'])))
 
 FILER_ENABLE_PERMISSIONS = getattr(settings, 'FILER_ENABLE_PERMISSIONS', False)
 FILER_ALLOW_REGULAR_USERS_TO_ADD_ROOT_FOLDERS = getattr(settings, 'FILER_ALLOW_REGULAR_USERS_TO_ADD_ROOT_FOLDERS', False)
 FILER_IS_PUBLIC_DEFAULT = getattr(settings, 'FILER_IS_PUBLIC_DEFAULT', True)
 
 FILER_PAGINATE_BY = getattr(settings, 'FILER_PAGINATE_BY', 20)
-FILER_STATICMEDIA_PREFIX = getattr(settings, 'FILER_STATICMEDIA_PREFIX', None)
-if not FILER_STATICMEDIA_PREFIX:
-    FILER_STATICMEDIA_PREFIX = (getattr(settings, 'STATIC_URL', None) or settings.MEDIA_URL) + 'filer/'
 
-FILER_ADMIN_ICON_SIZES = getattr(settings,"FILER_ADMIN_ICON_SIZES",(
-    '16', '32', '48', '64',
-    ))
+_ICON_SIZES = getattr(settings, 'FILER_ADMIN_ICON_SIZES', ('16', '32', '48', '64'))
+if not _ICON_SIZES:
+    raise ImproperlyConfigured('Please, configure FILER_ADMIN_ICON_SIZES')
+# Reliably sort by integer value, but keep icon size as string.
+# (There is some code in the wild that depends on this being strings.)
+FILER_ADMIN_ICON_SIZES = [str(i) for i in sorted([int(s) for s in _ICON_SIZES])]
+
+# Filer admin templates have specific icon sizes hardcoded: 32 and 48.
+_ESSENTIAL_ICON_SIZES = ('32', '48')
+if not all(x in FILER_ADMIN_ICON_SIZES for x in _ESSENTIAL_ICON_SIZES):
+    logger.warn(
+        "FILER_ADMIN_ICON_SIZES has not all of the essential icon sizes "
+        "listed: {}. Some icons might be missing in admin templates.".format(
+            _ESSENTIAL_ICON_SIZES))
 
 # This is an ordered iterable that describes a list of
 # classes that I should check for when adding files
-FILER_FILE_MODELS = getattr(settings, 'FILER_FILE_MODELS',
-    (
-        'filer.models.imagemodels.Image',
-        'filer.models.filemodels.File',
-    )
-)
+FILER_FILE_MODELS = getattr(
+    settings, 'FILER_FILE_MODELS',
+    (FILER_IMAGE_MODEL, 'filer.File'))
 
 DEFAULT_FILE_STORAGE = getattr(settings, 'DEFAULT_FILE_STORAGE', 'django.core.files.storage.FileSystemStorage')
 
@@ -47,23 +68,23 @@ MINIMAL_FILER_STORAGES = {
         'main': {
             'ENGINE': None,
             'OPTIONS': {},
-            },
+        },
         'thumbnails': {
             'ENGINE': None,
             'OPTIONS': {},
-            }
+        }
     },
     'private': {
         'main': {
             'ENGINE': None,
             'OPTIONS': {},
-            },
+        },
         'thumbnails': {
             'ENGINE': None,
             'OPTIONS': {},
-            },
         },
-    }
+    },
+}
 
 
 DEFAULT_FILER_STORAGES = {
@@ -166,19 +187,21 @@ else:
 
 FILER_STORAGES.rec_update(user_filer_storages)
 
+
 def update_storage_settings(user_settings, defaults, s, t):
     if not user_settings[s][t]['ENGINE']:
         user_settings[s][t]['ENGINE'] = defaults[s][t]['ENGINE']
         user_settings[s][t]['OPTIONS'] = defaults[s][t]['OPTIONS']
     if t == 'main':
-        if not 'UPLOAD_TO' in user_settings[s][t]:
+        if 'UPLOAD_TO' not in user_settings[s][t]:
             user_settings[s][t]['UPLOAD_TO'] = defaults[s][t]['UPLOAD_TO']
-        if not 'UPLOAD_TO_PREFIX' in user_settings[s][t]:
+        if 'UPLOAD_TO_PREFIX' not in user_settings[s][t]:
             user_settings[s][t]['UPLOAD_TO_PREFIX'] = defaults[s][t]['UPLOAD_TO_PREFIX']
     if t == 'thumbnails':
-        if not 'THUMBNAIL_OPTIONS' in user_settings[s][t]:
+        if 'THUMBNAIL_OPTIONS' not in user_settings[s][t]:
             user_settings[s][t]['THUMBNAIL_OPTIONS'] = defaults[s][t]['THUMBNAIL_OPTIONS']
     return user_settings
+
 
 update_storage_settings(FILER_STORAGES, DEFAULT_FILER_STORAGES, 'public', 'main')
 update_storage_settings(FILER_STORAGES, DEFAULT_FILER_STORAGES, 'public', 'thumbnails')
@@ -188,15 +211,16 @@ update_storage_settings(FILER_STORAGES, DEFAULT_FILER_STORAGES, 'private', 'thum
 FILER_SERVERS = RecursiveDictionaryWithExcludes(MINIMAL_FILER_SERVERS, rec_excluded_keys=('OPTIONS',))
 FILER_SERVERS.rec_update(getattr(settings, 'FILER_SERVERS', {}))
 
+
 def update_server_settings(settings, defaults, s, t):
     if not settings[s][t]['ENGINE']:
         settings[s][t]['ENGINE'] = defaults[s][t]['ENGINE']
         settings[s][t]['OPTIONS'] = defaults[s][t]['OPTIONS']
     return settings
 
+
 update_server_settings(FILER_SERVERS, DEFAULT_FILER_SERVERS, 'private', 'main')
 update_server_settings(FILER_SERVERS, DEFAULT_FILER_SERVERS, 'private', 'thumbnails')
-
 
 
 # Public media (media accessible without any permission checks)
@@ -217,3 +241,15 @@ FILER_PRIVATEMEDIA_THUMBNAIL_STORAGE = get_storage_class(FILER_STORAGES['private
 FILER_PRIVATEMEDIA_THUMBNAIL_OPTIONS = FILER_STORAGES['private']['thumbnails']['THUMBNAIL_OPTIONS']
 FILER_PRIVATEMEDIA_SERVER = load_object(FILER_SERVERS['private']['main']['ENGINE'])(**FILER_SERVERS['private']['main']['OPTIONS'])
 FILER_PRIVATEMEDIA_THUMBNAIL_SERVER = load_object(FILER_SERVERS['private']['thumbnails']['ENGINE'])(**FILER_SERVERS['private']['thumbnails']['OPTIONS'])
+
+# By default limit number of simultaneous uploads if we are using SQLite
+if settings.DATABASES['default']['ENGINE'].endswith('sqlite3'):
+    _uploader_connections = 1
+else:
+    _uploader_connections = 3
+FILER_UPLOADER_CONNECTIONS = getattr(
+    settings, 'FILER_UPLOADER_CONNECTIONS', _uploader_connections)
+
+FILER_DUMP_PAYLOAD = getattr(settings, 'FILER_DUMP_PAYLOAD', False)  # Whether the filer shall dump the files payload
+
+FILER_CANONICAL_URL = getattr(settings, 'FILER_CANONICAL_URL', 'canonical/')

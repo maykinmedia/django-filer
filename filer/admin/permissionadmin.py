@@ -1,31 +1,32 @@
-#-*- coding: utf-8 -*-
-import inspect
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 from django.contrib import admin
-from filer import settings
-from filer.fields import folder
+
+from .. import settings
+from ..fields import folder
 
 
 class PermissionAdmin(admin.ModelAdmin):
     fieldsets = (
-        (None, {'fields': (('type', 'folder',))}),
-        (None, {'fields': (('user', 'group', 'everybody'),)}),
+        (None, {'fields': (('type', 'folder', ))}),
+        (None, {'fields': (('user', 'group', 'everybody'), )}),
         (None, {'fields': (
-                    ('can_edit', 'can_read', 'can_add_children')
-                    )}
-        ),
+            ('can_edit', 'can_read', 'can_add_children')
+        )}),
     )
     raw_id_fields = ('user', 'group',)
     list_filter = ['user']
-    list_display = ['__unicode__', 'folder', 'user']
+    list_display = ['__str__', 'folder', 'user']
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         db = kwargs.get('using')
         if db_field.name == 'folder':
-            if 'admin_site' in inspect.getargspec(folder.AdminFolderWidget.__init__)[0]: # Django 1.4
-                widget_instance = folder.AdminFolderWidget(db_field.rel, self.admin_site, using=db)
-            else: # Django <= 1.3
-                widget_instance = folder.AdminFolderWidget(db_field.rel, using=db)
-            kwargs['widget'] = widget_instance
+            try:
+                remote = db_field.remote_field
+            except AttributeError:
+                remote = db_field.rel
+            kwargs['widget'] = folder.AdminFolderWidget(remote, self.admin_site, using=db)
         return super(PermissionAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_model_perms(self, request):

@@ -1,10 +1,14 @@
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import
+
 import os
 import stat
+
 from django.http import Http404, HttpResponse, HttpResponseNotModified
 from django.utils.http import http_date
 from django.views.static import was_modified_since
-from filer.server.backends.base import ServerBase
+
+from .base import ServerBase
 
 
 class DefaultServer(ServerBase):
@@ -22,11 +26,11 @@ class DefaultServer(ServerBase):
             raise Http404('"%s" does not exist' % fullpath)
         # Respect the If-Modified-Since header.
         statobj = os.stat(fullpath)
-        mimetype = self.get_mimetype(fullpath)
+        response_params = {'content_type': self.get_mimetype(fullpath)}
         if not was_modified_since(request.META.get('HTTP_IF_MODIFIED_SINCE'),
                                   statobj[stat.ST_MTIME], statobj[stat.ST_SIZE]):
-            return HttpResponseNotModified(mimetype=mimetype)
-        response = HttpResponse(open(fullpath, 'rb').read(), mimetype=mimetype)
+            return HttpResponseNotModified(**response_params)
+        response = HttpResponse(open(fullpath, 'rb').read(), **response_params)
         response["Last-Modified"] = http_date(statobj[stat.ST_MTIME])
         self.default_headers(request=request, response=response, file_obj=file_obj, **kwargs)
         return response

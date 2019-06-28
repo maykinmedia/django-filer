@@ -17,19 +17,7 @@ Defaults to ``False``
 
 Should newly uploaded files have permission checking disabled (be public) by default.
 
-Defaults to ``False`` (new files have permission checking disable, are public)
-
-.. _FILER_STATICMEDIA_PREFIX:
-
-``FILER_STATICMEDIA_PREFIX``
-----------------------------
-
-The prefix for static media where filer will look for bundled javascript, css
-and images.
-
-Defaults to ``<STATIC_URL>/filer/`` if ``STATIC_URL`` is defined. Otherwise
-falls back to ``<MEDIA_URL>/filer/``. It is the URL where the ``static/filer/`` 
-directory should be served.
+Defaults to ``True`` (new files have permission checking disable, are public)
 
 .. _FILER_STORAGES:
 
@@ -46,15 +34,16 @@ e.g::
                 'ENGINE': 'filer.storage.PublicFileSystemStorage',
                 'OPTIONS': {
                     'location': '/path/to/media/filer',
-                    'base_url': '/smedia/filer/',
+                    'base_url': '/media/filer/',
                 },
-                'UPLOAD_TO': 'filer.utils.generate_filename.by_date',
+                'UPLOAD_TO': 'filer.utils.generate_filename.randomized',
+                'UPLOAD_TO_PREFIX': 'filer_public',
             },
             'thumbnails': {
                 'ENGINE': 'filer.storage.PublicFileSystemStorage',
                 'OPTIONS': {
                     'location': '/path/to/media/filer_thumbnails',
-                    'base_url': '/smedia/filer_thumbnails/',
+                    'base_url': '/media/filer_thumbnails/',
                 },
             },
         },
@@ -65,7 +54,8 @@ e.g::
                     'location': '/path/to/smedia/filer',
                     'base_url': '/smedia/filer/',
                 },
-                'UPLOAD_TO': 'filer.utils.generate_filename.by_date',
+                'UPLOAD_TO': 'filer.utils.generate_filename.randomized',
+                'UPLOAD_TO_PREFIX': 'filer_public',
             },
             'thumbnails': {
                 'ENGINE': 'filer.storage.PrivateFileSystemStorage',
@@ -82,14 +72,24 @@ Defaults to FileSystemStorage in ``<MEDIA_ROOT>/filer_public/`` and ``<MEDIA_ROO
 Public storage uses ``DEFAULT_FILE_STORAGE`` as default storage backend.
 
 ``UPLOAD_TO`` is the function to generate the path relative to the storage root. The
-default generates a date based path like ``2011/05/03/filename.jpg``. This
-will be applied with the current date whenever a file is uploaded or moved
-between public (without permission checks) and private (with permission
-checks) storages. Defaults to ``'filer.utils.generate_filename.by_date'``
+default generates a random path like ``1d/a5/1da50fee-5003-46a1-a191-b547125053a8/filename.jpg``. This
+will be applied whenever a file is uploaded or moved between public (without permission checks) and 
+private (with permission checks) storages. Defaults to ``'filer.utils.generate_filename.randomized'``.
+
+Overriding single keys is possible, for example just set your custom ``UPLOAD_TO``::
+
+    FILER_STORAGES = {
+        'public': {
+            'main': {
+                'UPLOAD_TO': 'my_package.generate_filer_filename.no_dirs',
+            },
+        },
+        # same for private, or not
+    }
 
 
 ``FILER_SERVERS``
-------------------
+-----------------
 
 .. warning:: Server Backends are experimental and the API may change at any time.
 
@@ -134,3 +134,30 @@ Regular users are not allowed to create new folders at the root level, only
 subfolders of already existing folders, unless this setting is set to ``True``.
 
 Defaults to ``False``
+
+
+``FILER_IMAGE_MODEL``
+---------------------
+
+Defines the dotted path to a custom Image model; please include the model name.
+Example: 'my.app.models.CustomImage'
+
+Defaults to ``False``
+
+
+``FILER_CANONICAL_URL``
+-----------------------
+
+Defines the path element common to all canonical file URLs.
+
+Defaults to ``'canonical/'``
+
+
+``FILER_UPLOADER_CONNECTIONS``
+------------------------------
+
+Number of simultaneous AJAX uploads. Defaults to 3.
+
+If your database backend is SQLite it would be set to 1 by default. This allows
+to avoid ``database is locked`` errors on SQLite during multiple simultaneous
+file uploads.

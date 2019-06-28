@@ -1,7 +1,10 @@
-#-*- coding: utf-8 -*-
-from django.utils.encoding import smart_str
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, unicode_literals
+
 import mimetypes
 import os
+
+from django.utils.encoding import smart_str
 
 
 class ServerBase(object):
@@ -21,24 +24,26 @@ class ServerBase(object):
         """
         * if save_as is False the header will not be added
         * if save_as is a filename, it will be used in the header
-        * if save_as is None the filename will be determined from the file path
+        * if save_as is True or None the filename will be determined from the
+          file path
         """
         save_as = kwargs.get('save_as', None)
-        if save_as == False:
+        if save_as is False:
             return
         file_obj = kwargs.get('file_obj', None)
-        filename = None
-        if save_as:
-            filename = save_as
-        else:
+        if save_as is True or save_as is None:
             filename = os.path.basename(file_obj.path)
-        response['Content-Disposition'] = smart_str('attachment; filename=%s' % filename)
+        else:
+            filename = save_as
+        response['Content-Disposition'] = smart_str(
+            'attachment; filename=%s' % filename)
 
     def size_header(self, response, **kwargs):
         size = kwargs.get('size', None)
-        #file = kwargs.get('file', None)
+        # file = kwargs.get('file', None)
         if size:
             response['Content-Length'] = size
-        # we should not do this, because it accesses the file. and that might be an expensive operation.
+        # we should not do this, because it accesses the file. and that might
+        # be an expensive operation.
         # elif file and file.size is not None:
         #     response['Content-Length'] = file.size
